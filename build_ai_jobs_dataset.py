@@ -553,38 +553,6 @@ def main() -> None:
 
     if a.manual:
         pre_b, _ = vintage_years(a.pre)
-        print(f"""
-Download these into the `raw/` folder next to this script, then re-run WITHOUT
---manual. Filenames must match exactly; the script will use the cached copies.
-
-  REQUIRED
-  1) BLS pre-AI projections zip ({a.pre})
-     From: https://www.bls.gov/emp/data/projections-archive.htm
-           -> click "{a.pre} Projections"
-     Save as: raw/bls_{a.pre}.zip
-  2) BLS post-AI occupation workbook ({a.post})
-     From: https://www.bls.gov/emp/ind-occ-matrix/occupation.xlsx
-           (or the "Occupation" table at https://www.bls.gov/emp/tables.htm)
-     Save as: raw/occupation_{a.post}.xlsx
-  3) O*NET Task Statements
-     From: https://www.onetcenter.org/database.html#individual-files
-     Save as: raw/onet_task_statements.xlsx
-
-  OPTIONAL (script skips gracefully if absent)
-  4) O*NET Task Ratings          -> raw/onet_task_ratings.xlsx
-  5) Felten AIOE appendix         -> raw/AIOE_DataAppendix.xlsx
-     From: https://github.com/AIOE-Data/AIOE
-  6) SOC 2010->2018 crosswalk     -> raw/soc_2010_to_2018_crosswalk.xlsx
-     From: https://www.bls.gov/soc/2018/
-  7) Eloundou occ scores          -> raw/gpts_occ_level.csv
-  8) Eloundou task labels         -> raw/gpts_full_labelset.tsv
-     From: https://github.com/openai/GPTs-are-GPTs/tree/main/data
-  9) AEI task usage               -> raw/aei_task_pct.csv
- 10) AEI job exposure             -> raw/aei_job_exposure.csv
-     From: https://huggingface.co/datasets/Anthropic/EconomicIndex
-
-raw/ path: {RAW.resolve()}
-""")
         return
 
     build(a.pre, a.post, a.skip_aei, a.skip_optional)
