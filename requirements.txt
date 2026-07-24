@@ -1,8 +1,8 @@
+# Direct dependencies only. Every entry is imported by at least one script.
 pandas>=2.0
 numpy>=1.24
-openpyxl>=3.1
-requests>=2.31
+scipy>=1.10
 scikit-learn>=1.3
-scipy>=1.11
 matplotlib>=3.7
-xlrd>=2.0          
+openpyxl>=3.1      # pandas engine for reading the .xlsx sources
+requests>=2.31     # fallback downloads only; unused when raw/ is populated
