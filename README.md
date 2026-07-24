@@ -20,7 +20,7 @@ below, including why the honest reading is somewhere in between.
 
 ---
 
-![Screenshot](my-image.png)
+![Screenshot](mads699_project_architecture.png)
 
 ## How to run it
 
