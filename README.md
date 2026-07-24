@@ -1,313 +1,357 @@
-# AI Exposure and BLS Employment Projections
+# Did AI change how the government forecasts jobs?
 
-Does AI exposure predict how the Bureau of Labor Statistics revised its occupational
-employment projections after generative AI arrived?
+The Bureau of Labor Statistics publishes ten-year employment projections for every
+occupation in the country, and it updates them every couple of years. One of those
+updates was finalized in September 2022, right before ChatGPT came out. Another was
+released in August 2025, well after.
 
-This repo builds a single occupation-level dataset that joins two BLS projection
-vintages — one finalized before ChatGPT, one after — to four independent measures of
-AI exposure and the full O\*NET task inventory, then clusters occupations into
-AI-impact archetypes using k-means and Gaussian mixture models.
+So there's a natural comparison sitting there: take the same occupation, look at what
+BLS predicted for it before generative AI, look at what they predict now, and see how
+much the number moved. Then ask whether the occupations that moved the most are the ones
+AI is supposed to be good at.
 
-**Headline finding: the effect is real in the raw data but largely dissolves under a
-basic control.** Details in [Results](#results).
+That's the whole project. This repo builds the dataset that lets you ask the question,
+runs four different clustering algorithms to describe the structure of occupation-space,
+and runs the correlation tests that carry the actual claim.
+
+**Short version of the answer:** the effect looks real if you just correlate the two
+things, and it mostly disappears once you control for the obvious confound. More on that
+below, including why the honest reading is somewhere in between.
 
 ---
 
-## Repo contents
-
-| File | Purpose |
-|---|---|
-| `build_ai_jobs_dataset.py` | Builds the combined dataset. Downloads/caches every source, normalizes codes, joins to one occupation-level panel plus an occupation×task long file. |
-| `cluster_four_methods.py` | Four unsupervised families compared (k-means, GMM, Ward hierarchical, DBSCAN) + PCA, with cross-method agreement via Adjusted Rand Index. Excludes the outcome from features by default. |
-| `requirements.txt` | Dependencies. |
-
-## Quick start
+## How to run it
 
 ```bash
 pip install -r requirements.txt
-python build_ai_jobs_dataset.py     # -> out/occupation_ai_panel.csv
-python cluster_four_methods.py      # -> out/clusters_four_methods.csv
+
+python build_ai_jobs_dataset.py        # 1. build the dataset
+python analyze_exposure_revision.py    # 2. run the hypothesis tests
+python cluster_four_methods.py         # 3. run the four clustering models
+python make_figures.py                 # 4. draw the report figures
 ```
 
-### Repo layout
+Run them in that order. Step 1 writes the panel that steps 2 and 3 read; step 4 reads the
+outputs of both. Nothing needs an API key, an account, or a config file.
+
+**It runs offline.** Every input file is committed under `raw/`, so a fresh clone works
+with no network access at all. You should not need `--manual`, but it's there if you've
+deleted `raw/` and want the download list:
+
+```bash
+python build_ai_jobs_dataset.py --manual   # lists every source file + URL, marks what's missing
+```
+
+### Useful flags
+
+```bash
+python build_ai_jobs_dataset.py --pre 2019-29      # use the older pre-AI vintage
+python build_ai_jobs_dataset.py --skip-optional    # BLS + O*NET only, no exposure measures
+python analyze_exposure_revision.py --drop-pandemic # drop the 79 COVID-distorted occupations
+python cluster_four_methods.py --kmax 6            # search fewer values of k
+python cluster_four_methods.py --include-outcome   # the circular specification, for contrast
+```
+
+### What's in the repo
 
 ```
-build_ai_jobs_dataset.py          builds the combined dataset
-cluster_four_methods.py           the four unsupervised models
+build_ai_jobs_dataset.py        1. builds the combined dataset
+analyze_exposure_revision.py    2. the hypothesis tests and derived variables
+cluster_four_methods.py         3. the four unsupervised models
+make_figures.py                 4. every figure that appears in the report
 requirements.txt
 README.md
-raw/
-  occupation_2021-31.xlsx         committed - bls.gov blocks automated download
-  occupation_2024-34.xlsx         committed - bls.gov blocks automated download
-  aei_job_exposure.csv            committed - not reliably auto-fetchable
-  onet_task_statements.xlsx       committed - required, and pins the O*NET version
-out/                              generated; commit if you want results tracked
+raw/                            all nine input files, committed
+out/                            generated CSVs
+figures/                        generated PNGs
 ```
 
-**Four input files are committed** so a fresh clone runs anywhere. The two BLS
-workbooks because `bls.gov` blocks datacenter IP ranges; `aei_job_exposure.csv`
-because it is not reliably auto-fetchable; and the O\*NET Task Statements because it
-is a hard requirement and committing it pins the database version (O\*NET download
-URLs are version-numbered, so an un-pinned run can silently pull a different release).
-Total ~1.9 MB. BLS files are public-domain US government works; O\*NET is CC BY 4.0
-(credited above); AEI is openly published.
+### Why the data is committed rather than downloaded
 
-Everything else — Felten AIOE, Eloundou occupation and task files, O\*NET Task
-Ratings, AEI task usage — is fetched automatically on first run and `.gitignore`d.
+All nine input files live in `raw/` (about 2 MB total). This is deliberate:
 
-Downloads cache in `raw/`. If a source is unreachable, the build warns and continues —
-only the two BLS vintages and O\*NET task statements are strictly required.
+- `bls.gov` blocks datacenter IP ranges, so any cloud notebook fails to fetch the two
+  projection workbooks.
+- O\*NET's download URLs are version-numbered. An automatic fetch could quietly pull a
+  different release than the one analyzed here and change the task counts without anyone
+  noticing. The committed copy pins the version.
+- The Anthropic Economic Index files don't sit at a stable URL.
 
-`python build_ai_jobs_dataset.py --manual` prints a manual download list with target
-filenames, for environments where `bls.gov` blocks automated requests (it blocks
-datacenter IP ranges, so this is common on cloud notebooks).
+The download code in `build_ai_jobs_dataset.py` still exists, but on a normal run every
+request short-circuits on the cache check and never fires. Treat it as documentation of
+where each file came from, plus a fallback if someone clears `raw/`. All nine files are
+under licenses that permit redistribution — see the licensing section at the bottom.
 
 ---
 
-## Data sources
+## Where the data comes from
 
-### Employment projections
+Three kinds of input, all joined on occupation code.
 
-| Source | Contributes | Native key |
+**The employment projections.** Two vintages from BLS. The 2021–31 cycle is the "before"
+picture — finalized September 2022, the last complete forecast produced before generative
+AI became a mainstream concern. The 2024–34 cycle, released August 2025, is the "after."
+Both use 2018 SOC codes, so they join directly.
+
+We picked 2021–31 over the earlier 2019–29 cycle because it's closer in time, but it has
+a real weakness: its base year is 2021, when food service, personal care, and arts
+employment were still depressed by COVID. Those occupations got projected to "recover"
+strongly, and later vintages walked that back. That has nothing to do with AI and it's
+the single biggest thing we have to control for.
+
+**Four measures of AI exposure.** This is the part we're most confident about, because
+the four were built in completely different ways by completely different people:
+
+- The **Anthropic Economic Index** measures what people actually do with Claude, mapped
+  onto occupations. It's behavioral — observed usage, not anyone's opinion about what AI
+  could do.
+- **Eloundou et al.'s "GPTs are GPTs"** took the opposite approach: human raters applied
+  a written rubric to occupations and tasks, and GPT-4 applied the same rubric separately.
+  They report three thresholds — *alpha* is direct LLM exposure, *beta* adds software
+  built on top of LLMs, *gamma* is the broadest.
+- **Felten, Raj & Seamans' AIOE** predates LLMs entirely. It scores occupations by how
+  much they rely on human abilities that AI in general has gotten good at.
+- **Claude usage share by task**, also from the Anthropic index, summed to the occupation.
+
+Two are opinion-based, one is behavioral, one is pre-LLM. If they all point the same
+direction, that means something. They do.
+
+**Task data from O\*NET.** Every task belonging to every occupation, whether it's core or
+supplemental, and how important raters judged it. This is what lets us work at the task
+level rather than only the occupation level.
+
+### How the joins work
+
+Most of it is straightforward because most sources use 2018 SOC codes. Two wrinkles:
+
+O\*NET uses codes like `15-1252.00`, which is the 2018 SOC code `15-1252` plus a detail
+suffix. Chopping the suffix gets you the SOC code. Where several O\*NET occupations roll
+up into one SOC code, scores are averaged and task lists pooled.
+
+Felten's AIOE uses **2010** SOC codes, which are not the same thing. We run it through
+the official BLS 2010→2018 crosswalk. If that crosswalk is unreachable, the build falls
+back to assuming codes didn't change — true for most occupations, wrong for the recoded
+ones. That's a known accuracy cost and the script warns when it happens.
+
+Task-level files join on normalized task text, which works but leaves a small unmatched
+tail.
+
+---
+
+## What comes out
+
+| File | Written by | What it is |
 |---|---|---|
-| [BLS Employment Projections archive](https://www.bls.gov/emp/data/projections-archive.htm), 2021–31 vintage | **Pre-AI** employment + projected 10-yr growth (Table 1.2) | 2018 SOC |
-| [BLS Employment Projections](https://www.bls.gov/emp/ind-occ-matrix/occupation.xlsx), 2024–34 cycle | **Post-AI** employment, growth, openings, wage, education | 2018 SOC |
+| `out/occupation_ai_panel.csv` | step 1 | ~832 rows, one per occupation, everything joined |
+| `out/occupation_task_long.csv` | step 1 | ~18,800 rows, one per occupation × task |
+| `out/hypothesis_tests.csv` | step 2 | every exposure measure vs revision, raw and residualized, with FDR flags |
+| `out/revision_derived.csv` | step 2 | `revision_resid` and `pandemic_sensitive` per occupation |
+| `out/clusters_four_methods.csv` | step 3 | the panel plus all four models' labels. **The analysis file.** |
+| `out/cluster_profiles_four_methods.csv` | step 3 | cluster averages, for naming the archetypes |
+| `out/method_agreement_ari.csv` | step 3 | the cross-method agreement matrix |
+| `figures/fig1..fig4*.png` | step 4 | the report figures |
 
-The 2021–31 projections were finalized in September 2022 — the last full cycle
-developed before ChatGPT's release, and the cleanest available pre-generative-AI
-baseline. The 2019–29 cycle is an alternative (`--pre 2019-29`) but its base year sits
-mid-pandemic. The 2024–34 cycle was released August 28, 2025.
+### The variables that carry the argument
 
-BLS began explicitly assessing AI impacts starting with the 2023–33 cycle; see
-Machovec, Rieley & Rolen, "Incorporating AI impacts in BLS employment projections:
-occupational case studies," *Monthly Labor Review*, February 2025.
+**`revision_pp`** is projected growth in the new vintage minus projected growth in the old
+one, in percentage points. Negative means BLS now expects the occupation to grow more
+slowly than it used to think. Built in step 1.
 
-### AI exposure measures
+**`revision_resid`** is `revision_pp` after regressing out pre-AI projected growth, built
+in step 2. Here's why it exists. Occupations projected to grow fast get revised downward
+almost automatically — regression to the mean, which would happen with or without AI. In
+this data that relationship has an R² of 0.39, meaning **39% of the raw revision is mean
+reversion alone.** Any claim about AI has to survive that control.
 
-| Source | Measure | Native key | Join method |
-|---|---|---|---|
-| [Anthropic Economic Index](https://huggingface.co/datasets/Anthropic/EconomicIndex) — `job_exposure.csv` | `observed_exposure`: **revealed** exposure from real Claude conversations mapped to occupations | 2018 SOC | direct |
-| [Eloundou et al., "GPTs are GPTs"](https://github.com/openai/GPTs-are-GPTs) — `data/occ_level.csv` | Rubric-based LLM exposure. `alpha` = direct LLM exposure; `beta` = incl. LLM-powered software; `gamma` = broadest. Separate `human_rating_*` and `dv_rating_*` (GPT-4-labelled) variants | O\*NET-SOC | first 7 chars = 2018 SOC |
-| Same repo — `data/full_labelset.tsv` | Task-level exposure labels, aggregated to occupation means (`gpts_task_*_mean`) | task text | normalized text match |
-| [Felten, Raj & Seamans AIOE](https://github.com/AIOE-Data/AIOE) | Ability-based AI exposure index (pre-LLM, measures AI-in-general) | **2010 SOC** | [BLS 2010→2018 crosswalk](https://www.bls.gov/soc/2018/) |
-| [Anthropic Economic Index](https://huggingface.co/datasets/Anthropic/EconomicIndex) — `task_pct` | Share of Claude conversations per O\*NET task, summed to occupation | task text | normalized text match |
+**`pandemic_sensitive`** flags the 79 occupations in SOC majors 35 (food service), 39
+(personal care), and 27 (arts and media). They average a **−8.3pp** revision against
+**−1.9pp** for everything else. That gap is COVID recovery being unwound, not AI.
 
-Having four measures from genuinely different methodologies is the point — see the
-convergent-validity result below.
+### Other columns worth knowing
 
-### Task data
+Identifiers are `soc_code`, `occ_title`, `soc_major`, and `bls_merge` (whether the
+occupation appears in both vintages or only one). Projections are `emp_2021` / `emp_2031`
+/ `pct_chg_2021_2031` for the pre vintage, the `2024` / `2034` equivalents for the post
+vintage, plus `openings_*`, `median_wage_2024`, and `education_2024`. Exposure columns are
+`aei_observed_exposure`, `gpts_human_rating_{alpha,beta,gamma}`,
+`gpts_dv_rating_{alpha,beta,gamma}`, `gpts_task_{alpha,beta,gamma}_mean`, `aioe_felten`,
+and `aei_claude_usage_share`. Task structure is `n_onet_tasks` and `mean_task_importance`.
 
-| Source | Contributes | Join |
-|---|---|---|
-| [O\*NET Database](https://www.onetcenter.org/database.html#individual-files) — Task Statements | Every task per occupation, task type (Core/Supplemental) | O\*NET-SOC prefix → 2018 SOC |
-| O\*NET Database — Task Ratings | Task importance ratings (scale `IM`) | Task ID |
-
-**Why the prefix works:** O\*NET-SOC 2019 codes are 2018 SOC codes plus a `.XX` detail
-suffix (`15-1252.00` → `15-1252`). Where one SOC maps to several O\*NET occupations,
-scores are averaged and task counts are pooled under the parent SOC.
-
----
-
-## Outputs
-
-| File | Shape | Description |
-|---|---|---|
-| `out/occupation_ai_panel.csv` | ~832 × 28 | One row per 2018 SOC occupation. All sources joined. |
-| `out/occupation_task_long.csv` | ~18,800 × 42 | One row per occupation × O\*NET task, occupation columns broadcast onto every task row. |
-| `out/clusters_four_methods.csv` | ~831 × 36 | The panel plus labels from all four models, GMM membership probabilities, per-occupation silhouette, DBSCAN noise flag, PCA coordinates. **The analysis file.** |
-| `out/cluster_profiles_four_methods.csv` | k × features | Z-scored feature means per cluster, for naming archetypes. |
-
-### Data dictionary — `final_ai_jobs_dataset.csv`
-
-**Identifiers**
-- `soc_code`, `occ_title` — 2018 SOC code and title
-- `soc_major` — first two digits (SOC major group)
-- `bls_merge` — whether the occupation appears in both vintages or only one
-
-**Employment projections**
-- `emp_2021`, `emp_2031`, `pct_chg_2021_2031` — pre-AI vintage (thousands; % 10-yr growth)
-- `emp_2024`, `emp_2034`, `pct_chg_2024_2034` — post-AI vintage
-- `openings_2021_2031`, `openings_2024_2034` — annual average occupational openings
-- `median_wage_2024`, `education_2024` — context from the post vintage
-
-**Dependent variables**
-- `revision_pp` — **the core variable.** Post-vintage growth minus pre-vintage growth,
-  in percentage points. Negative = BLS now projects slower growth than before generative AI.
-- `revision_resid` — `revision_pp` residualized on `pct_chg_2021_2031`. Removes mean
-  reversion: fast-projected-growth occupations get revised down almost mechanically.
-  In this data that regression has R²=0.39, so **39% of the raw revision is mean
-  reversion, not AI.**
-- `pandemic_sensitive` — SOC majors 35 (food service), 39 (personal care/entertainment),
-  27 (arts/media). Their 2021 base-year employment was pandemic-depressed, so the
-  2021–31 vintage projected large phantom "recovery" growth that later vintages undid.
-  These 79 occupations average **−8.3pp** revision vs. **−1.9pp** for everything else.
-
-**AI exposure**
-- `aei_observed_exposure` — Anthropic Economic Index (revealed usage)
-- `gpts_human_rating_{alpha,beta,gamma}` — Eloundou, human raters
-- `gpts_dv_rating_{alpha,beta,gamma}` — Eloundou, GPT-4 labels
-- `gpts_task_{alpha,beta,gamma}_mean` — Eloundou task labels averaged per occupation
-- `aioe_felten` — Felten/Raj/Seamans AIOE
-- `aei_claude_usage_share` — summed Claude-usage share across the occupation's tasks
-
-**Task structure**
-- `n_onet_tasks`, `mean_task_importance`
-
-**Clustering**
-- `kmeans_cluster`, `kmeans_silhouette` — hard label; per-occupation silhouette
-  (negative = closer to another cluster than its own)
-- `gmm_cluster`, `gmm_max_prob`, `gmm_entropy`, `gmm_prob_0..n` — soft membership.
-  Low `gmm_max_prob` flags occupations between archetypes.
-- `pca1`, `pca2` — first two principal components, for plotting
-- `feat_*` — the exact standardized inputs to the models, for reproducibility
+From the clustering step: `kmeans_cluster` and per-occupation `kmeans_silhouette`
+(negative means the occupation sits closer to another cluster than its own);
+`gmm_cluster`, `gmm_max_prob`, and `gmm_prob_0..n` for soft membership, where a low max
+probability flags an occupation between archetypes; `ward_cluster`; `dbscan_cluster` and
+`dbscan_noise`; `pca1` and `pca2` for plotting; and `feat_*`, the exact standardized
+inputs to the models, kept for reproducibility. Employment figures are in thousands
+throughout.
 
 ---
 
-## What is and isn't being predicted
+## The models, in plain language
 
-Unsupervised learning has **no target variable**. The clustering does not predict
-`revision_pp`; it finds structure in occupation-space. Two separate questions:
+An important framing point first: **clustering doesn't predict anything.** There's no
+target variable. It groups occupations by similarity and that's it. The clusters are
+descriptive — a way of saying "here are the natural strata in occupation-space." The
+actual AI claim is carried by `analyze_exposure_revision.py`, which is a separate step
+with a separate method.
 
-| | Question | Method | Target |
+|  | Question | Method | Target |
 |---|---|---|---|
-| Unsupervised | What natural groupings exist among occupations? | k-means, GMM, Ward, DBSCAN | none |
-| Inferential | Does AI exposure predict downgraded projections? | Spearman / regression | `revision_pp` |
+| Unsupervised | What groupings exist among occupations? | k-means, GMM, Ward, DBSCAN | none |
+| Inferential | Does exposure predict downgraded projections? | Spearman, residualization | `revision_pp` |
 
-The clusters are descriptive archetypes. The hypothesis test carries the AI claim.
+This separation matters because of a trap we deliberately avoided. If you put
+`revision_pp` into the clustering features, the clusters are partly *defined* by the
+outcome, and then saying "look, the clusters differ in revisions" is circular. The script
+excludes it by default. Pass `--include-outcome` to see the circular version — it's
+instructive.
 
-**Circularity warning.** If `revision_pp` is in the feature matrix, clusters are partly
-*defined* by the outcome — fine for descriptive strata, invalid for claiming clusters
-differ in revisions. `cluster_four_methods.py` excludes it by default; pass
-`--include-outcome` to see the circular version. See [Results](#results) for why this
-matters enormously.
+We also dropped `pct_chg_2024_2034` from the features on purpose, because
+`pct_chg_2024_2034 = pct_chg_2021_2031 + revision_pp` exactly. Including all three would
+have silently double-weighted growth against exposure in the distance calculation.
 
-## Method
+Four algorithms, chosen because each assumes something different about what a cluster is:
 
-**Feature matrix.** AI exposure (AEI + Eloundou beta), log Claude usage, pre-AI
-projected growth, `revision_pp`, log employment, log wage, task count, mean task
-importance. Standardized; rows needing >40% imputation dropped, remainder median-imputed.
+- **K-means** assumes clusters are round blobs of roughly equal size and that every
+  occupation belongs to one. Simple, fast, and it will happily invent structure in pure
+  noise.
+- **Gaussian mixture** assumes clusters are stretched ellipses that can overlap, and it
+  returns *probabilities* of membership instead of hard labels. Occupations with a low max
+  probability sit between archetypes.
+- **Ward hierarchical** assumes clusters nest inside each other, building up a tree.
+- **DBSCAN** assumes clusters are dense regions with empty space between them, and
+  crucially it's allowed to say "this point doesn't belong anywhere" and call it noise.
 
-**One deliberate exclusion.** `pct_chg_2024_2034 = pct_chg_2021_2031 + revision_pp`
-exactly, so the three span only two dimensions. Including all three in a
-distance-based clusterer silently double-weights growth against exposure. The post
-column is dropped.
+DBSCAN is the honest one. The other three are obligated to produce clusters no matter what
+you feed them. DBSCAN can decline. Agreement across the four is measured with the Adjusted
+Rand Index, and PCA is reported alongside for the two-dimensional picture.
 
-**Four unsupervised families**, chosen because each carries a different assumption:
+### What each one said
 
-| Model | Family | Assumes | Selection |
-|---|---|---|---|
-| K-means | centroid | spherical, equal-size, all points assigned | silhouette |
-| GMM | probabilistic | elliptical, overlapping, soft membership | BIC |
-| Ward | hierarchical | nested structure | silhouette + merge-height gap |
-| DBSCAN | density | dense regions separated by sparse ones; **can label noise** | k-NN knee sweep |
+**They found the same big split, and disagreed about everything else.**
 
-PCA is also reported (a fifth family, dimensionality reduction) for the 2-D view and
-component loadings.
+K-means settled on two clusters. One has 257 occupations with high AI exposure (+0.91σ),
+high LLM scores, high Claude usage, and high wages — database administrators, PR
+specialists, financial advisors, animators. The other has 516 with low exposure —
+pipelayers, auto glass installers, small engine mechanics. That's knowledge work versus
+physical work, the divide AI exposure has always tracked. No surprise, but it confirms the
+features measure what we think.
 
-DBSCAN matters most: the other three *force* structure — give k-means pure noise and it
-returns k clusters regardless. DBSCAN can decline to assign a point. Agreement across
-families is measured with the Adjusted Rand Index.
+The silhouette score is **0.232**, below the usual 0.25 threshold for "these are real,
+separate groups." Translation: occupations lie on a **continuum** of AI exposure, not in
+discrete types. The line we drew is a convenience.
 
----
+The four methods agree only moderately — mean pairwise ARI of **0.335**. K-means and Ward
+mostly agree (0.615), which makes sense since both are distance-based. GMM finds a
+substantially different partition. DBSCAN throws about 195 occupations into the noise bin
+rather than forcing them anywhere. Put that next to the 0.232 silhouette and the story is
+consistent: one continuous gradient, sliced four ways according to four sets of
+assumptions. So we report these as strata, not as discovered categories.
 
-## Results
+**The exposure measures agree with each other.** Mean Spearman correlation between the
+Anthropic index (what people actually do with Claude) and the Eloundou measures (humans
+applying a rubric) is **+0.615**. Two methodologies with nothing in common land in the same
+place. This is what makes the null result below interpretable rather than ambiguous — we
+can't wave it away by saying the exposure measure was junk.
 
-### Convergent validity: +0.615
+**The hypothesis test is mostly null.** Correlating raw revisions against exposure gives a
+negative relationship across all ten exposure measures, consistently signed, several
+significant (the Anthropic index: ρ = −0.128, p = 0.0004). Residualize on pre-AI growth
+and most collapse to zero or flip positive. Two survive:
 
-Mean Spearman correlation between the Anthropic Economic Index (revealed Claude usage)
-and the Eloundou measures (human raters applying a rubric) is **+0.615**. Two entirely
-independent methodologies converge, so the exposure construct is measuring something
-real — which makes the null result below interpretable rather than ambiguous.
-
-### Clustering: k=2, silhouette 0.232
-
-| Cluster | n | Profile | Representative occupations |
-|---|---|---|---|
-| 0 | 257 | exposure +0.91σ, LLM +1.02σ, Claude usage +0.76σ, wage +0.61σ | database administrators, PR specialists, personal financial advisors, animators |
-| 1 | 516 | exposure −0.45σ, best-separated (silhouette 0.303) | pipelayers, auto glass installers, small engine mechanics |
-
-The split is knowledge work vs. manual work — the fundamental divide AI exposure tracks.
-But cluster 0's `revision_pp` is only −0.11σ against cluster 1's +0.05σ: the exposed
-cluster is *barely* more downgraded. The null result shows up structurally.
-
-Silhouette 0.232 is below the ~0.25 rule of thumb for clear separation. Occupations lie
-on an exposure **continuum**, not in discrete types. Report clusters as descriptive
-strata, not as discovered categories.
-
-### Hypothesis: mostly null after controls
-
-Raw revision correlates negatively with exposure across all ten measures — consistent
-sign, several significant (AEI: ρ=−0.128, p=0.0004). Residualize on pre-AI growth and
-most collapse to zero or flip positive. Only the two **alpha** measures survive:
-
-| Measure | net of mean reversion | p |
+| Measure | after removing mean reversion | p |
 |---|---|---|
 | `gpts_dv_rating_alpha` | −0.092 | 0.010 |
 | `gpts_task_alpha_mean` | −0.108 | 0.003 |
 
-Notably, alpha is *direct* LLM exposure while beta/gamma add LLM-powered software. The
-effect that survives is about the model itself, not the tooling around it.
+Both are *alpha* measures — direct LLM exposure, not the broader definitions that include
+LLM-powered software. If anything is here, it's about the model itself rather than the
+tooling built around it.
 
-### Four unsupervised families disagree — and the cluster effect vanishes
-
-`cluster_four_methods.py` runs four algorithms with different built-in assumptions
-(centroid / probabilistic / nested / density) and measures agreement with the
-Adjusted Rand Index.
-
-| | kmeans | gmm | ward | dbscan |
-|---|---|---|---|---|
-| **kmeans** | 1.000 | 0.238 | 0.615 | 0.408 |
-| **gmm** | 0.238 | 1.000 | 0.234 | 0.149 |
-| **ward** | 0.615 | 0.234 | 1.000 | 0.367 |
-| **dbscan** | 0.408 | 0.149 | 0.367 | 1.000 |
-
-Mean pairwise ARI **0.335 — moderate**. K-means and Ward largely agree (0.615), but GMM
-recovers a very different partition. DBSCAN labels ~195 occupations as noise rather
-than forcing them into clusters. Read together with the 0.23 silhouette, this says
-occupations lie on a **continuum**, and each method is slicing it according to its own
-assumptions. Report clusters as strata, not discovered natural kinds.
-
-**The decisive result:** with `revision_pp` removed from the features, a one-way ANOVA
-across k-means clusters gives **F=0.049, p=0.825** — clusters do *not* differ
-significantly in projection revisions. The apparent cluster difference in the
-outcome-included specification was largely circular. AI-exposed occupations form a
-clear, well-separated group in feature space; that group has **not** been
-systematically downgraded by BLS.
-
-### Caveats
-
-1. **Multiple comparisons.** 20 tests were run; Bonferroni would require p<0.0025. The
-   best result (0.0028) does not clear it. Apply Benjamini-Hochberg before claiming
-   significance.
-2. **Possible over-control.** High-exposure occupations are disproportionately tech jobs
-   that were *also* projected to grow fast pre-AI (cluster 0: growth_pre +0.22σ).
-   Residualizing on pre-growth strips some genuine AI signal along with the mean
-   reversion. The truth lies between the raw and residualized columns.
-3. **Projections are not outcomes.** Both vintages are forecasts. This measures how BLS
-   *changed its mind*, not what happened in the labor market. For realized effects, join
-   OEWS or CES actuals for 2022–2025.
-4. **Exposure ≠ displacement.** Every measure here is explicit that it captures
-   potential applicability, not substitution. High exposure is compatible with AI
-   complementing workers.
-5. **Felten crosswalk fallback.** When the BLS 2010→2018 crosswalk is unreachable, the
-   build assumes SOC codes are unchanged — true for most, but it costs accuracy on
-   recoded occupations.
-
-### Suggested next steps
-
-- Drop the 79 pandemic-sensitive occupations entirely instead of residualizing. On an
-  earlier AEI-only run this *strengthened* the correlation to −0.17.
-- Use 2019–29 as the pre-vintage to sidestep the pandemic base year.
-- Test against realized OEWS employment rather than projection-vs-projection.
-- Multiple regression with wage, education, and major-group fixed effects.
+**And the decisive one:** with `revision_pp` excluded from the clustering features, a
+one-way ANOVA across the k-means clusters gives **F = 0.049, p = 0.825**, and a
+distribution-free Kruskal-Wallis check agrees. The clusters do not differ significantly in
+how their projections were revised. The apparent difference in the outcome-included
+version was largely circular. So: AI-exposed occupations form a clean, recognizable group
+in feature space, and that group has **not** been systematically downgraded by BLS.
 
 ---
 
-## Notes on reproducibility
+## What this doesn't establish
 
-- `bls.gov` blocks datacenter IP ranges. Cloud notebooks will need `--manual`, or
-  files downloaded from a residential connection.
-- Header wording differs across BLS vintages ("Percent employment change" vs.
-  "Employment change, percent, 2024–34"); the build matches both.
+**Multiple comparisons.** Around twenty tests are run. `analyze_exposure_revision.py`
+applies a Benjamini-Hochberg correction and reports which measures clear it; Bonferroni
+would demand p < 0.0025 and the best surviving result at 0.0028 does not. Read the flagged
+column, not the raw p-values.
+
+**We may have over-controlled.** High-exposure occupations are disproportionately tech
+jobs, and tech jobs were *also* projected to grow fast before AI (cluster 0 sits at +0.22σ
+on pre-AI growth). Residualizing on pre-growth strips out some real AI signal along with
+the mean reversion. The truth is somewhere between the raw and residualized columns, and
+we don't have a clean way to separate them here.
+
+**These are forecasts, not outcomes.** Both vintages are BLS predicting the future. What
+we've measured is how BLS *changed its mind* — a statement about an agency's model, not
+about the labor market. Measuring what actually happened would need realized OEWS or CES
+employment for 2022–2025.
+
+**Exposure is not displacement.** Every source here says so explicitly. These measures
+capture whether AI *could* be applied to the work, not whether it replaces the worker.
+High exposure is entirely compatible with AI making people better at their jobs.
+
+**The Felten crosswalk can fall back.** If the BLS 2010→2018 crosswalk is unavailable, the
+build assumes codes are unchanged. Fine for most occupations, wrong for recoded ones.
+
+## If you want to push this further
+
+- Drop the 79 pandemic-sensitive occupations outright instead of residualizing them away
+  (`--drop-pandemic`). On an earlier Anthropic-index-only run, doing that *strengthened*
+  the correlation to −0.17.
+- Use 2019–29 as the pre-AI vintage (`--pre 2019-29`) to dodge the pandemic base year.
+- Test against realized OEWS employment instead of projection-versus-projection.
+- Run a multiple regression with wage, education, and major-group fixed effects rather
+  than a single residualization.
+
+---
+
+## Data access statement
+
+Everything used here is publicly available and free. No account, license purchase, or data
+use agreement is needed to reproduce this work. All nine input files are committed to
+`raw/`, so the analysis reproduces offline; the URLs below are where each originally came
+from.
+
+- **BLS Employment Projections** (2021–31 and 2024–34 vintages): public domain, as works
+  of the United States government. From the
+  [projections archive](https://www.bls.gov/emp/data/projections-archive.htm) and the
+  [current occupation matrix](https://www.bls.gov/emp/ind-occ-matrix/occupation.xlsx).
+- **BLS 2010→2018 SOC crosswalk**: public domain, from
+  [bls.gov/soc/2018](https://www.bls.gov/soc/2018/).
+- **O\*NET Database** (Task Statements, Task Ratings): licensed
+  [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) by the National Center for
+  O\*NET Development, used and redistributed under that license with attribution. From
+  [onetcenter.org](https://www.onetcenter.org/database.html#individual-files).
+- **Anthropic Economic Index** (`job_exposure.csv`, `task_pct`): openly published on
+  [Hugging Face](https://huggingface.co/datasets/Anthropic/EconomicIndex).
+- **Eloundou et al., "GPTs are GPTs"** (`occ_level.csv`, `full_labelset.tsv`): openly
+  published at [github.com/openai/GPTs-are-GPTs](https://github.com/openai/GPTs-are-GPTs).
+- **Felten, Raj & Seamans AIOE**: openly published at
+  [github.com/AIOE-Data/AIOE](https://github.com/AIOE-Data/AIOE).
+
+All four exposure datasets are redistributed here under the terms their publishers set,
+and all are attributed above.
+
+Background on how BLS itself began accounting for AI: Machovec, Rieley & Rolen,
+"Incorporating AI impacts in BLS employment projections: occupational case studies,"
+*Monthly Labor Review*, February 2025.
+
+## Reproducibility notes
+
+- Random seeds are pinned (`SEED = 42`) for k-means, the Gaussian mixture, and PCA, so
+  cluster labels and reported scores are stable across runs.
+- BLS header wording changes between vintages ("Percent employment change" versus
+  "Employment change, percent, 2024–34"). The build matches both spellings.
 - Employment figures are in thousands.
-- Task-text joins use normalized exact matching; expect a small unmatched tail.
+- Task-text joins use normalized exact matching, so expect a small unmatched tail.
+- Scripts resolve their own paths relative to the file, so they can be run from any
+  working directory.
