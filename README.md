@@ -20,6 +20,8 @@ below, including why the honest reading is somewhere in between.
 
 ---
 
+![Screenshot](my-image.png)
+
 ## How to run it
 
 ```bash
