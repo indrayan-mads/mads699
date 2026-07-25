@@ -1,18 +1,3 @@
-"""Generate the figures used in the written report.
-
-Reads the outputs of cluster_four_methods.py and analyze_exposure_revision.py
-and writes four PNGs to figures/. Every figure in the report is produced here,
-so the report's visuals are reproducible from the committed code.
-
-    fig1_pca_clusters.png       occupations in PCA space, coloured by cluster
-    fig2_exposure_revision.png  exposure vs revision, raw and residualized
-    fig3_cluster_profiles.png   what actually distinguishes the clusters
-    fig4_method_agreement.png   how much the four algorithms agree
-
-Usage:
-    python make_figures.py
-"""
-
 from __future__ import annotations
 
 import argparse
