@@ -1,4 +1,4 @@
-# Did AI change how jobs are forecast?
+# Did AI influence employment projections across occupations, and expose which occupations are most AI-driven?
 
 The Bureau of Labor Statistics publishes ten-year employment projections for every
 occupation in the country, and it updates them every couple of years. One of those
@@ -158,7 +158,7 @@ tail.
 
 **`revision_pp`** is projected growth in the new vintage minus projected growth in the old
 one, in percentage points. Negative means BLS now expects the occupation to grow more
-slowly than it used to think. Built in step 1.
+slowly than previously. Built in step 1.
 
 **`revision_resid`** is `revision_pp` after regressing out pre-AI projected growth, built
 in step 2. Here's why it exists. Occupations projected to grow fast get revised downward
@@ -168,9 +168,9 @@ reversion alone.** Any claim about AI has to survive that control.
 
 **`pandemic_sensitive`** flags the 79 occupations in SOC majors 35 (food service), 39
 (personal care), and 27 (arts and media). They average a **−8.3pp** revision against
-**−1.9pp** for everything else. That gap is COVID recovery being unwound, not AI.
+**−1.9pp** for everything else. That gap is indicative of COVID recovery being unwound, not AI.
 
-### Other columns worth knowing
+### Other columns worth mentioning
 
 Identifiers are `soc_code`, `occ_title`, `soc_major`, and `bls_merge` (whether the
 occupation appears in both vintages or only one). Projections are `emp_2021` / `emp_2031`
@@ -185,8 +185,8 @@ From the clustering step: `kmeans_cluster` and per-occupation `kmeans_silhouette
 `gmm_cluster`, `gmm_max_prob`, and `gmm_prob_0..n` for soft membership, where a low max
 probability flags an occupation between archetypes; `ward_cluster`; `dbscan_cluster` and
 `dbscan_noise`; `pca1` and `pca2` for plotting; and `feat_*`, the exact standardized
-inputs to the models, kept for reproducibility. Employment figures are in thousands
-throughout.
+inputs to the models, kept for reproducibility. Employment figures are represent per thousands
+throughout the datasets and methodologies.
 
 ---
 
