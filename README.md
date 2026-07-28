@@ -229,7 +229,7 @@ DBSCAN is the honest one. The other three are obligated to produce clusters no m
 you feed them. DBSCAN can decline. Agreement across the four is measured with the Adjusted
 Rand Index, and PCA is reported alongside for the two-dimensional picture.
 
-### What each one said
+### What we found
 
 **They found the same big split, and disagreed about everything else.**
 
