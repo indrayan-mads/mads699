@@ -7,15 +7,15 @@ released in August 2025, well after.
 
 So there's a natural comparison sitting there: take the same occupation, look at what
 the BLS predicted for the occupation before generative AI, opposed to what they predict now. You can see how
-much the number moved. Then ask whether the occupations that moved the most are the ones that AI was expected to move
-or supposedly be good at.
+much the number has moved, as well as the direction of the move. Then ask whether the occupations that moved 
+the most are the ones that AI was expected to move or supposedly where AI should be good at.
 
-That's the whole project. This repo builds the dataset that lets you ask the question,
+This repo builds the dataset that lets you infer inquiries and answers questions, the repo
 runs four different clustering algorithms to describe the structure of occupation-space,
-and runs the correlation tests that carry the actual claim.
+and runs correlation tests that carry the actual claim that could also develop valuable insights. 
 
-**Short version of the answer:** the effect looks real if you just correlate the two
-things, and it mostly disappears once you control for the obvious confound. More on that
+**Short version of the answer:** The general effect looks real if you just correlate AI and occupations
+but mostly disappears once you control for the obvious confounds. More on that
 below, including why the honest reading is somewhere in between.
 
 ---
