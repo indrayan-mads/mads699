@@ -116,15 +116,16 @@ the four were built in completely different ways by completely different people:
 - **Claude usage share by task**, also from the Anthropic index, summed to the occupation.
 
 Two are opinion-based, one is behavioral, one is pre-LLM. If they all point the same
-direction, that means something. They do.
+direction, that could indicate some significance. 
 
 **Task data from O\*NET.** Every task belonging to every occupation, whether it's core or
 supplemental, and how important raters judged it. This is what lets us work at the task
-level rather than only the occupation level.
+level rather than a broad overview at the occupation level. 
 
 ### How the joins work
 
-Most of it is straightforward because most sources use 2018 SOC codes. Two wrinkles:
+Most of the sources use 2018 SOC codes, which acts as a key to join on. 
+We did however run into two wrinkles:
 
 O\*NET uses codes like `15-1252.00`, which is the 2018 SOC code `15-1252` plus a detail
 suffix. Chopping the suffix gets you the SOC code. Where several O\*NET occupations roll
