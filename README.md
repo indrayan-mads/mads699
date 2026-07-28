@@ -1,4 +1,4 @@
-# Did AI change how the government forecasts jobs?
+# Did AI change how jobs are forecast?
 
 The Bureau of Labor Statistics publishes ten-year employment projections for every
 occupation in the country, and it updates them every couple of years. One of those
@@ -6,9 +6,9 @@ updates was finalized in September 2022, right before ChatGPT came out. Another 
 released in August 2025, well after.
 
 So there's a natural comparison sitting there: take the same occupation, look at what
-BLS predicted for it before generative AI, look at what they predict now, and see how
-much the number moved. Then ask whether the occupations that moved the most are the ones
-AI is supposed to be good at.
+the BLS predicted for the occupation before generative AI, opposed to what they predict now. You can see how
+much the number moved. Then ask whether the occupations that moved the most are the ones that AI was expected to move
+or supposedly be good at.
 
 That's the whole project. This repo builds the dataset that lets you ask the question,
 runs four different clustering algorithms to describe the structure of occupation-space,
