@@ -1,7 +1,7 @@
 # Did AI influence employment projections across occupations, and expose which occupations are most AI-driven?
 
-The Bureau of Labor Statistics publishes ten-year employment projections for every
-occupation in the country, and it updates them every couple of years. One of those
+The Bureau of Labor Statistics updates and publishes ten-year employment projections for every
+occupation in the United States every couple of years. One of those
 updates was finalized in September 2022, right before ChatGPT came out. Another was
 released in August 2025, which at the speed of AI is well after.
 
