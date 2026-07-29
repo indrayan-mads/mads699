@@ -3,14 +3,15 @@
 The Bureau of Labor Statistics publishes ten-year employment projections for every
 occupation in the country, and it updates them every couple of years. One of those
 updates was finalized in September 2022, right before ChatGPT came out. Another was
-released in August 2025, well after.
+released in August 2025, which at the speed of AI is well after.
 
 So there's a natural comparison sitting there: take the same occupation, look at what
 the BLS predicted for the occupation before generative AI, opposed to what they predict now. You can see how
-much the number has moved, as well as the direction of the move. Then ask whether the occupations that moved 
-the most are the ones that AI was expected to move or supposedly where AI should be good at.
+much the number has moved, as well as the direction of the move. Another question then arises when we look at 
+those occupations. Of those that showed the most change, are those occupations the ones that AI was expected to impact the most
+or were they simply the occupations that AI enhanced?
 
-This repo builds the dataset that lets you infer inquiries and answers questions, the repo
+This repo builds the dataset that lets you infer inquiries and pre-define your own answer. The repo
 runs four different clustering algorithms to describe the structure of occupation-space,
 and runs correlation tests that carry the actual claim that could also develop valuable insights. 
 
