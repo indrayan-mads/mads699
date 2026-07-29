@@ -3,7 +3,7 @@
 The Bureau of Labor Statistics updates and publishes ten-year employment projections for every
 occupation in the United States every couple of years. One of those
 updates was finalized in September 2022, right before ChatGPT came out. Another was
-released in August 2025, which at the speed of AI is well after.
+released in August 2025, a massive gap considering how fast AI moves. 
 
 So there's a natural comparison sitting there: take the same occupation, look at what
 the BLS predicted for the occupation before generative AI, opposed to what they predict now. You can see how
