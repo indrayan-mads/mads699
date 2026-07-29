@@ -17,7 +17,7 @@ describe the structure of occupations-space, and runs correlation tests that car
 
 **Short version of the answer:** The general effect looks real if you just correlate AI and occupations
 but mostly disappears once you control for the obvious confounds. More on that
-below, including why the honest reading is somewhere in between.
+below, including why the honest reading may reside somewhere in the middle.
 
 ---
 
