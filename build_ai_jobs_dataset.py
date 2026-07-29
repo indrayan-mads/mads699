@@ -47,7 +47,7 @@ REQUEST_TIMEOUT = 120  # seconds
 
 ONET_RE = re.compile(r"^\d{2}-\d{4}\.\d{2}$")
 
-# --- source URLs -------------------------------------------------------------
+############# Source URLs #############
 
 ARCHIVE_URL = "https://www.bls.gov/emp/projections-archive/{v}.zip"
 CURRENT_OCC_URL = "https://www.bls.gov/emp/ind-occ-matrix/occupation.xlsx"
@@ -70,7 +70,7 @@ HF = "https://huggingface.co/datasets/Anthropic/EconomicIndex/resolve/main/"
 ONET_VERSIONS = ["30_3", "30_2", "30_1", "30_0", "29_3", "29_2", "29_1", "29_0", "28_3"]
 ONET_URL = "https://www.onetcenter.org/dl_files/database/db_{v}_excel/{f}"
 
-# Filename -> where a human can get it. Printed by --manual.
+# File names and excel sheets. Printed by --manual.
 MANUAL_SOURCES = [
     ("occupation_2024-34.xlsx", "https://www.bls.gov/emp/ind-occ-matrix/occupation.xlsx",
      "current-cycle occupation workbook (Table 1.2)"),
@@ -98,7 +98,7 @@ MANUAL_SOURCES = [
 
 
 # ----------------------------------------------------------------------------
-# Small utilities
+# Small utilities - For readability and debugging
 # ----------------------------------------------------------------------------
 
 def log(msg: str) -> None:
@@ -109,6 +109,7 @@ def warn(msg: str) -> None:
     print(f"[build][WARN] {msg}")
 
 
+#Session initalization and Requests
 def download(url: str, dest: Path, required: bool = False, note: str = "") -> Path | None:
     """Download url -> dest with caching. Returns dest, or None on failure."""
     if dest.exists() and dest.stat().st_size > 0:
@@ -147,6 +148,7 @@ def try_urls(urls: list[str], dest: Path, required: bool = False,
     return None
 
 
+#Data Cleaning and Organization
 def find_col(df: pd.DataFrame, *patterns: str) -> str | None:
     """Return the first column whose name matches any regex (case-insensitive)."""
     for pat in patterns:
@@ -236,8 +238,10 @@ def load_bls_vintage(vintage: str) -> pd.DataFrame:
     c_type = find_col(df, r"occupation type")
     c_emp_b = find_col(df, rf"employment,?\s*{base}\b")
     c_emp_p = find_col(df, rf"employment,?\s*{proj}\b")
-    # Header wording differs across vintages: older files say "Percent employment
+    
+    # Notes: Header wording differs across vintages: older files say "Percent employment
     # change"; the 2024-34 workbook says "Employment change, percent, 2024-34".
+    
     c_pct = find_col(df, r"percent employment change", r"employment change,?\s*percent")
     c_open = find_col(df, r"occupational openings")
     c_wage = find_col(df, r"median annual wage")
@@ -303,6 +307,7 @@ def load_felten() -> pd.DataFrame | None:
                        "aioe_felten": pd.to_numeric(df[c_aioe], errors="coerce")})
     df = df.dropna(subset=["soc2010"])
 
+    
     # SOC 2010 -> 2018 crosswalk. Most codes are unchanged; the crosswalk fixes
     # the recoded minority. Falling back costs accuracy on those occupations.
     xw_path = try_urls(CROSSWALK_URLS, RAW / "soc_2010_to_2018_crosswalk.xlsx",
@@ -344,6 +349,7 @@ def load_eloundou_occ() -> pd.DataFrame | None:
     if c_code is None:
         warn(f"Eloundou occ_level: no code column (cols={list(df.columns)}); skipping.")
         return None
+        
     # O*NET-SOC codes are the 2018 SOC code plus a .XX detail suffix.
     codes = df[c_code].astype(str).str.strip()
     df["soc_code"] = codes.str.slice(0, 7).where(codes.str.match(r"\d{2}-\d{4}"), None)
@@ -505,6 +511,7 @@ def build(pre: str, post: str, skip_aei: bool, skip_optional: bool) -> None:
     panel["bls_merge"] = panel["bls_merge"].map(
         {"both": "both_vintages", "left_only": f"only_{post}", "right_only": f"only_{pre}"})
 
+    
     # The core dependent variable: how much BLS changed its 10-year growth
     # forecast for this occupation between the two vintages, in percentage points.
     panel["revision_pp"] = panel[post_pct] - panel[pre_pct]
