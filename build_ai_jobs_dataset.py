@@ -267,6 +267,7 @@ def load_bls_vintage(vintage: str) -> pd.DataFrame:
     if c_edu:
         out["typical_education"] = df[c_edu].astype(str).str.strip()
     if c_type:
+        
         # Keep detailed occupations, drop summary/rollup lines. `out` is built
         # from `df`, so it carries df's index and this mask aligns.
         out = out[df[c_type].astype(str).str.contains("line item", case=False, na=False)]
@@ -613,6 +614,7 @@ def main() -> None:
                     help="skip all exposure sources; BLS + O*NET only")
     ap.add_argument("--manual", action="store_true",
                     help="print the files to download by hand into raw/, then exit")
+    
     # Under Jupyter, sys.argv holds the kernel's own arguments (-f kernel.json),
     # which argparse would reject. Ignore them when running inside a notebook.
     argv = [] if "ipykernel" in sys.modules else sys.argv[1:]
