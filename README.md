@@ -11,9 +11,9 @@ much the number has moved, as well as the direction of the move. Another questio
 those occupations. Of those that showed the most change, are those occupations the ones that AI was expected to impact the most
 or were they simply the occupations that AI enhanced?
 
-This repo builds the dataset that lets you infer inquiries and pre-define your own answer. The repo
-runs four different clustering algorithms to describe the structure of occupation-space,
-and runs correlation tests that carry the actual claim that could also develop valuable insights. 
+This repo builds the dataset that lets you infer inquiries and define your own answer,
+there were four main unsupervised techniques used to derive the results. The four different clustering algorithms 
+describe the structure of occupations-space, and runs correlation tests that carry the actual claim to draw valuable insights.
 
 **Short version of the answer:** The general effect looks real if you just correlate AI and occupations
 but mostly disappears once you control for the obvious confounds. More on that
