@@ -171,7 +171,10 @@ reversion alone.** Any claim about AI has to survive that control.
 (personal care), and 27 (arts and media). They average a **−8.3pp** revision against
 **−1.9pp** for everything else. That gap is indicative of COVID recovery being unwound, not AI.
 
-### Other columns worth mentioning
+### Other columns and notes worth mentioning
+
+There are two graphs: The slope figure and dumbell chart that are used to get an overall idea of
+the trends of projections as well as the trends of occupations where ai is used more or less.
 
 Identifiers are `soc_code`, `occ_title`, `soc_major`, and `bls_merge` (whether the
 occupation appears in both vintages or only one). Projections are `emp_2021` / `emp_2031`
