@@ -1,4 +1,4 @@
-# Did AI influence employment projections across occupations, and expose which occupations are most AI-driven?
+# Did AI expose which occupations are most AI-driven?
 
 The Bureau of Labor Statistics updates and publishes ten-year employment projections for every
 occupation in the United States every couple of years. One of those
