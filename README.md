@@ -32,9 +32,9 @@ python build_ai_jobs_dataset.py        # 1. build the dataset
 python analyze_exposure_revision.py    # 2. run the hypothesis tests
 python cluster_four_methods.py         # 3. run the four clustering models
 python make_figures.py                 # 4. draw the report stats figures
-python preprocessing.py                # 5. preprocess for readable figures
-python second_prelim_visual.py         # 6. draw the reports figure 1
-python third_visual.py                 # 7. draw the reports figure 2
+python first_visual.py                 # 5. preprocess for readable figures, draw the reports figure 1
+python second_prelim_visual.py         # 6. draw the reports figure 2
+python third_visual.py                 # 7. draw the reports figure 3
 ```
 
 Run them in that order. Step 1 writes the panel that steps 2 and 3 read; step 4 reads the
