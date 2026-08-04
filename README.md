@@ -1,4 +1,4 @@
-# How did AI exposure aid and change the overall occupational outlook?
+# How did AI exposure aid in changing occupational outlooks?
 
 The Bureau of Labor Statistics updates and publishes ten-year employment projections for every
 occupation in the United States every couple of years. One of those
