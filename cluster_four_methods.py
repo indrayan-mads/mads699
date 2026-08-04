@@ -1,19 +1,4 @@
 """Compare four unsupervised clustering families on the occupation panel.
-
-Runs k-means (centroid), Gaussian mixture (probabilistic), Ward hierarchical
-(nested) and DBSCAN (density) over the same standardized feature matrix, then
-measures how much they agree using the Adjusted Rand Index. PCA is reported
-alongside for the two-dimensional view and component loadings.
-
-The clustering is descriptive: it has no target variable and does not predict
-projection revisions. `revision_pp` is deliberately excluded from the features,
-because including the outcome makes any "clusters differ in revisions" claim
-circular. It is compared across clusters afterwards instead. Pass
---include-outcome to reproduce the circular specification for comparison.
-
-Usage:
-    python cluster_four_methods.py
-    python cluster_four_methods.py --include-outcome
 """
 
 from __future__ import annotations
