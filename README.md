@@ -72,3 +72,7 @@ out/                            generated CSVs
 figures/                        generated PNGs
 ```
 
+### Disclaimer 
+
+Many of the scripts here are crummy and utilize Claude code, specifically the **Opus 4.8 model**, to aid in the programming aspect as well as reducing typos within our README
+
