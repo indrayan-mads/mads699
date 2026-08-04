@@ -1,16 +1,4 @@
 """Build the occupation-level AI exposure / BLS projection-revision dataset.
-
-Joins two BLS employment-projection vintages (one finalized before generative AI,
-one after) to four independent measures of AI exposure and the O*NET task
-inventory, producing one occupation-level panel and one occupation x task file.
-
-Usage:
-    python build_ai_jobs_dataset.py                 # defaults: 2021-31 -> 2024-34
-    python build_ai_jobs_dataset.py --pre 2019-29   # alternative pre-AI vintage
-    python build_ai_jobs_dataset.py --manual        # list files to download by hand
-
-All required inputs are committed under raw/, so a fresh clone runs offline.
-Network fetching only happens for files that are missing from that directory.
 """
 
 from __future__ import annotations
