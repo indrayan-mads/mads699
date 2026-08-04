@@ -1,26 +1,3 @@
-"""Test whether AI exposure predicts downgraded BLS employment projections.
-
-This is the inferential half of the project. The clustering in
-cluster_four_methods.py is descriptive and has no target; the AI claim is
-carried here.
-
-Builds the two derived variables the analysis depends on:
-
-  revision_resid      revision_pp residualized on pre-AI projected growth.
-                      Fast-projected-growth occupations get revised down almost
-                      mechanically, so this strips out mean reversion.
-  pandemic_sensitive  SOC majors 35, 39 and 27, whose 2021 base-year employment
-                      was pandemic-depressed and whose "recovery" growth later
-                      vintages undid. Nothing to do with AI.
-
-Then correlates every available exposure measure against both the raw and the
-residualized revision, and applies a Benjamini-Hochberg correction because
-roughly twenty tests are run.
-
-Usage:
-    python analyze_exposure_revision.py
-"""
-
 from __future__ import annotations
 
 import argparse
