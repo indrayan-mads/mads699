@@ -1,4 +1,4 @@
-# Did AI expose which occupations are most AI-driven?
+# How did AI exposure aid and change the overall occupational outlook?
 
 The Bureau of Labor Statistics updates and publishes ten-year employment projections for every
 occupation in the United States every couple of years. One of those
