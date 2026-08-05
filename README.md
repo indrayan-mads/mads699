@@ -82,4 +82,4 @@ figures/                       Generated charts
 
 ## AI assistance disclosure
 
-Claude was used to assist with portions of programming and proofreading. All reported results should be evaluated against the executable scripts and generated outputs in this repository.
+Claude Opus 4.5 & Codex was used to assist with portions of programming and proofreading. All uses of this technology were within the guidelines provided. 
