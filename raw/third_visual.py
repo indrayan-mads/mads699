@@ -2,14 +2,17 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap, TwoSlopeNorm
+from pathlib import Path
 
 
 # ============================================================
 # FILES
 # ============================================================
 
-BLS_FILE = "occupation.xlsx"
-AEI_FILE = "aei_job_exposure.csv"
+ROOT = Path(__file__).resolve().parents[1]
+BLS_FILE = ROOT / "raw" / "occupation.xlsx"
+AEI_FILE = ROOT / "raw" / "aei_job_exposure.csv"
+FIG_PATH = ROOT / "figures" / "exposure_vs_bls_projected_growth.png"
 
 
 AVERAGE_GROWTH = 3.1
@@ -525,7 +528,7 @@ ax.text(
     "Higher exposure\nAbove-average growth",
     ha="center",
     va="center",
-    fontsize=7.5,
+    fontsize=8,
 )
 
 
@@ -535,7 +538,7 @@ ax.text(
     "Higher exposure\nBelow-average growth",
     ha="center",
     va="center",
-    fontsize=7.5,
+    fontsize=8,
 )
 
 
@@ -545,7 +548,7 @@ ax.text(
     "Lower exposure\nAbove-average growth",
     ha="center",
     va="center",
-    fontsize=7.5,
+    fontsize=8,
 )
 
 
@@ -555,7 +558,7 @@ ax.text(
     "Lower exposure\nBelow-average growth",
     ha="center",
     va="center",
-    fontsize=7.5,
+    fontsize=8,
 )
 
 
@@ -564,7 +567,7 @@ ax.text(
     y_max * 0.97,
     f"  {EXPOSURE_PERCENTILE}th percentile exposure",
     va="top",
-    fontsize=7,
+    fontsize=8,
 )
 
 
@@ -572,7 +575,7 @@ ax.text(
     x_min + 0.004,
     AVERAGE_GROWTH + 0.7,
     f"All-occupation growth: {AVERAGE_GROWTH:.1f}%",
-    fontsize=7,
+    fontsize=8,
 )
 
 colorbar = fig.colorbar(
@@ -601,7 +604,7 @@ colorbar.set_ticklabels(
 
 
 colorbar.ax.tick_params(
-    labelsize=7,
+    labelsize=8,
     pad=3,
 )
 
@@ -625,8 +628,11 @@ colorbar.ax.xaxis.set_label_position(
 
 # Do not use tight_layout() or constrained_layout().
 # Fixed axes positions are already controlling the spacing.
-plt.show()
+FIG_PATH.parent.mkdir(exist_ok=True)
+plt.savefig(FIG_PATH, dpi=200)
+plt.close(fig)
 
 
 print(f"Matched occupations: {len(df)}")
 print(f"Exposure cutoff: {exposure_cutoff:.4f}")
+print(f"Saved: {FIG_PATH}")

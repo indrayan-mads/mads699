@@ -1,7 +1,10 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+from pathlib import Path
 
-XLSX_PATH = "occupation.xlsx"   # BLS sheet "Table 1.1"
+ROOT = Path(__file__).resolve().parents[1]
+XLSX_PATH = ROOT / "raw" / "occupation.xlsx"   # BLS sheet "Table 1.1"
+FIG_PATH = ROOT / "figures" / "employment_projections_slope.png"
 
 #data loading
 raw = pd.read_excel(XLSX_PATH, sheet_name="Table 1.1", header=1)
@@ -118,4 +121,7 @@ ax.text(-0.04, -0.075,
         transform=ax.transAxes, fontsize=11, color="#999")
 
 plt.subplots_adjust(left=0.055, right=0.99, top=0.9, bottom=0.09)
-plt.show()
+FIG_PATH.parent.mkdir(exist_ok=True)
+plt.savefig(FIG_PATH, dpi=170)
+plt.close(fig)
+print(f"Saved: {FIG_PATH}")

@@ -1,10 +1,12 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
+from pathlib import Path
 
-SKILLS_XLSX = "skills.xlsx"          # both files in the same folder you run from
-OCC_XLSX = "occupation.xlsx"
-FIG_PATH = "AI_Usage_vs_Labor.png"
+ROOT = Path(__file__).resolve().parents[1]
+SKILLS_XLSX = ROOT / "raw" / "skills.xlsx"
+OCC_XLSX = ROOT / "raw" / "occupation.xlsx"
+FIG_PATH = ROOT / "figures" / "AI Usage vs Labor.png"
 
 SKILLS = ["Critical and analytical thinking", "Mechanical",
           "Problem solving and decision making", "Computers and information technology",
@@ -64,7 +66,7 @@ for side in ("top", "right", "left"):
     ax.spines[side].set_visible(False)
 ax.spines["bottom"].set_color("#cccccc")
 
-ax.set_title("AI Usage vs type of Labor", fontsize=24, fontweight="bold",
+ax.set_title("AI usage by type of labor", fontsize=24, fontweight="bold",
              loc="left", pad=28, x=-0.28)
 
 legend_handles = [
@@ -77,4 +79,4 @@ ax.legend(handles=legend_handles, loc="lower right", frameon=False,
 plt.subplots_adjust(left=0.29, right=0.985, top=0.87, bottom=0.12)
 plt.savefig(FIG_PATH, dpi=200)
 print(f"Saved: {FIG_PATH}")
-plt.show()
+plt.close(fig)

@@ -290,8 +290,13 @@ def report_outcome(out: pd.DataFrame, include_outcome: bool) -> None:
         # Kruskal-Wallis as a distribution-free check, since revision_pp is skewed.
         h_stat, p_kw = stats.kruskal(*groups)
         print(f"Kruskal-Wallis (rank-based check):      H={h_stat:.3f}, p={p_kw:.4f}")
-        verdict = ("clusters DO differ in revision_pp" if p < 0.05
-                   else "clusters do NOT differ significantly in revision_pp")
+        if p < 0.05 and p_kw < 0.05:
+            verdict = "both tests find a cluster difference in revision_pp"
+        elif p >= 0.05 and p_kw >= 0.05:
+            verdict = "neither test finds a cluster difference in revision_pp"
+        else:
+            verdict = ("tests disagree; treat the cluster-outcome result as "
+                       "sensitive to distributional assumptions")
         print(f"  {verdict}")
 
 

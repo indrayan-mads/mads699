@@ -78,17 +78,20 @@ slowly than previously. Built in step 1.
 **`revision_resid`** is `revision_pp` after regressing out pre-AI projected growth, built
 in step 2. Here's why it exists. Occupations projected to grow fast get revised downward
 almost automatically — regression to the mean, which would happen with or without AI. In
-this data that relationship has an R² of 0.39, meaning **39% of the raw revision is mean
+this data that relationship has an R² of 0.40, meaning **40% of the raw revision is mean
 reversion alone.** Any claim about AI has to survive that control.
 
-**`pandemic_sensitive`** flags the 79 occupations in SOC majors 35 (food service), 39
-(personal care), and 27 (arts and media). They average a **−8.3pp** revision against
+**`pandemic_sensitive`** flags the 90 occupations in SOC major groups 35 (food service), 39
+(personal care), and 27 (arts and media). They average a **−8.4pp** revision against
 **−1.9pp** for everything else. That gap is indicative of COVID recovery being unwound, not AI.
 
 ### Other columns and notes worth mentioning
 
-There are two graphs: The slope figure and dumbell chart that are used to get an overall idea of
-the trends of projections as well as the trends of occupations where ai is used more or less.
+Three contextual figures complement the four analytical figures. The employment slope chart
+summarizes projected changes across major occupational groups. The dumbbell chart compares
+skill profiles between occupations in which AI use is expected to increase or decrease. The
+exposure-growth scatterplot shows where high AI exposure coincides with above- or below-average
+projected growth. These provide context; the inferential claim is carried by the tests below.
 
 Identifiers are `soc_code`, `occ_title`, `soc_major`, and `bls_merge` (whether the
 occupation appears in both vintages or only one). Projections are `emp_2021` / `emp_2031`
@@ -103,8 +106,8 @@ From the clustering step: `kmeans_cluster` and per-occupation `kmeans_silhouette
 `gmm_cluster`, `gmm_max_prob`, and `gmm_prob_0..n` for soft membership, where a low max
 probability flags an occupation between archetypes; `ward_cluster`; `dbscan_cluster` and
 `dbscan_noise`; `pca1` and `pca2` for plotting; and `feat_*`, the exact standardized
-inputs to the models, kept for reproducibility. Employment figures are represent per thousands
-throughout the datasets and methodologies.
+inputs to the models, kept for reproducibility. Employment figures are reported in thousands
+throughout the datasets and methodology.
 
 ---
 
@@ -151,22 +154,22 @@ Rand Index, and PCA is reported alongside for the two-dimensional picture.
 
 **They found the same big split, and disagreed about everything else.**
 
-K-means settled on two clusters. One has 257 occupations with high AI exposure (+0.91σ),
-high LLM scores, high Claude usage, and high wages — database administrators, PR
-specialists, financial advisors, animators. The other has 516 with low exposure —
+K-means settled on two clusters. One has 316 occupations with high AI exposure (+0.71σ),
+high LLM scores, high Claude usage, and high wages — database administrators, public relations
+specialists, financial advisors, and animators. The other has 456 with low exposure —
 pipelayers, auto glass installers, small engine mechanics. That's knowledge work versus
 physical work, the divide AI exposure has always tracked. No surprise, but it confirms the
 features measure what we think.
 
-The silhouette score is **0.232**, below the usual 0.25 threshold for "these are real,
-separate groups." Translation: occupations lie on a **continuum** of AI exposure, not in
-discrete types. The line we drew is a convenience.
+The silhouette score is **0.264**. This indicates weak separation: occupations appear to lie
+largely on a **continuum** of AI exposure rather than in sharply discrete types. The line drawn
+between the two clusters is a descriptive convenience.
 
-The four methods agree only moderately — mean pairwise ARI of **0.335**. K-means and Ward
-mostly agree (0.615), which makes sense since both are distance-based. GMM finds a
-substantially different partition. DBSCAN throws about 195 occupations into the noise bin
-rather than forcing them anywhere. Put that next to the 0.232 silhouette and the story is
-consistent: one continuous gradient, sliced four ways according to four sets of
+The four methods agree weakly — mean pairwise ARI of **0.271**. K-means and Ward
+mostly agree (0.683), which makes sense since both are distance-based. GMM finds a
+substantially different partition. DBSCAN places 180 occupations in the noise bin
+rather than forcing them anywhere. Put that next to the 0.264 silhouette and the story is
+consistent: a largely continuous gradient, sliced four ways according to four sets of
 assumptions. So we report these as strata, not as discovered categories.
 
 **The exposure measures agree with each other.** Mean Spearman correlation between the
@@ -176,7 +179,7 @@ place. This is what makes the null result below interpretable rather than ambigu
 can't wave it away by saying the exposure measure was junk.
 
 **The hypothesis test is mostly null.** Correlating raw revisions against exposure gives a
-negative relationship across all ten exposure measures, consistently signed, several
+negative relationship across all twelve exposure measures, consistently signed, several
 significant (the Anthropic index: ρ = −0.128, p = 0.0004). Residualize on pre-AI growth
 and most collapse to zero or flip positive. Two survive:
 
@@ -189,12 +192,12 @@ Both are *alpha* measures — direct LLM exposure, not the broader definitions t
 LLM-powered software. If anything is here, it's about the model itself rather than the
 tooling built around it.
 
-**And the decisive one:** with `revision_pp` excluded from the clustering features, a
-one-way ANOVA across the k-means clusters gives **F = 0.049, p = 0.825**, and a
-distribution-free Kruskal-Wallis check agrees. The clusters do not differ significantly in
-how their projections were revised. The apparent difference in the outcome-included
-version was largely circular. So: AI-exposed occupations form a clean, recognizable group
-in feature space, and that group has **not** been systematically downgraded by BLS.
+**The cluster-level result is test-sensitive:** with `revision_pp` excluded from the
+clustering features, a one-way ANOVA across the k-means clusters gives **F = 0.462,
+p = 0.4967**, while the distribution-free Kruskal–Wallis test gives **H = 5.097,
+p = 0.0240**. The mean-based test finds no difference, but the rank-based test does. This
+disagreement means the cluster-outcome conclusion depends on distributional assumptions;
+it should not be presented as decisive evidence either for or against an AI effect.
 
 ---
 
@@ -225,7 +228,7 @@ build assumes codes are unchanged. Fine for most occupations, wrong for recoded 
 
 ## If you want to push this further
 
-- Drop the 79 pandemic-sensitive occupations outright instead of residualizing them away
+- Drop the 90 pandemic-sensitive occupations outright instead of residualizing them away
   (`--drop-pandemic`). On an earlier Anthropic-index-only run, doing that *strengthened*
   the correlation to −0.17.
 - Use 2019–29 as the pre-AI vintage (`--pre 2019-29`) to dodge the pandemic base year.
@@ -238,9 +241,10 @@ build assumes codes are unchanged. Fine for most occupations, wrong for recoded 
 ## Data access statement
 
 Everything used here is publicly available and free. No account, license purchase, or data
-use agreement is needed to reproduce this work. All nine input files are committed to
-`raw/`, so the analysis reproduces offline; the URLs below are where each originally came
-from.
+use agreement is needed to reproduce this work. The analysis inputs are committed to `raw/`
+except for the optional BLS 2010→2018 SOC crosswalk. If that file cannot be downloaded, the
+build completes with the documented unchanged-code fallback. The URLs below identify the
+original sources.
 
 - **BLS Employment Projections** (2021–31 and 2024–34 vintages): public domain, as works
   of the United States government. From the
@@ -262,8 +266,8 @@ from.
 All four exposure datasets are redistributed here under the terms their publishers set,
 and all are attributed above.
 
-Background on how BLS itself began accounting for AI: Machovec, Rieley & Rolen,
-"Incorporating AI impacts in BLS employment projections: occupational case studies,"
+Background on how BLS itself began accounting for AI: Machovec, Rieley, and Rolen,
+["Incorporating AI impacts in BLS employment projections: occupational case studies"](https://www.bls.gov/opub/mlr/2025/article/incorporating-ai-impacts-in-bls-employment-projections.htm),
 *Monthly Labor Review*, February 2025.
 
 ## Reproducibility notes

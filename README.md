@@ -1,78 +1,85 @@
-# How did AI exposure aid in changing occupational outlooks?
+# AI exposure and changing occupational outlooks
 
-The Bureau of Labor Statistics updates and publishes ten-year employment projections for every
-occupation in the United States every couple of years. One of those
-updates was finalized in September 2022, right before ChatGPT came out. Another was
-released in August 2025, a massive gap considering how fast AI moves. 
+How did the Bureau of Labor Statistics (BLS) change its ten-year employment projections after generative artificial intelligence (AI) became widely available, and were the largest revisions concentrated in occupations with greater AI exposure?
 
-So there's a natural comparison sitting there: take the same occupation, look at what
-the BLS predicted for the occupation before generative AI, opposed to what they predict now. You can see how
-much the number has moved, as well as the direction of the move. Another question then arises when we look at 
-those occupations. Of those that showed the most change, are those occupations the ones that AI was expected to impact the most
-or were they simply the occupations that AI enhanced?
+This project compares the BLS 2021–31 projections, finalized before ChatGPT's public release, with the 2024–34 projections released in 2025. It combines those vintages with four measures of AI exposure and task information from the Occupational Information Network (O\*NET). Four unsupervised clustering methods describe occupational structure; separate correlation tests evaluate the relationship between exposure and projection revisions.
 
-This repo builds the dataset that lets you infer inquiries and define your own answer,
-there were four main unsupervised techniques used to derive the results. The four different clustering algorithms 
-describe the structure of occupations-space, and runs correlation tests that carry the actual claim to draw valuable insights.
+**Main result:** AI exposure is negatively correlated with raw projection revisions, but most of that relationship weakens after accounting for pre-AI projected growth. Two direct large language model (LLM) exposure measures remain significant after false discovery rate correction. Cluster-level results are sensitive to the statistical test: the one-way analysis of variance (ANOVA) is not significant, while the rank-based Kruskal–Wallis test is significant. This is evidence for caution rather than a clean displacement effect.
 
-**Short version of the answer:** The general effect looks real if you just correlate AI and occupations
-but mostly disappears once you control for the obvious confounds. More on that
-below, including why the honest reading may reside somewhere in the middle.
+For the full methodology, results, limitations, and citations, see [`appendix.md`](appendix.md).
 
----
+![Project data and analysis architecture](mads699_project_architecture.png)
 
-![Screenshot](mads699_project_architecture.png)
+## Reproduce the analysis
 
-## How to run it
+Python 3.9 or newer is recommended. From the repository root, run:
 
 ```bash
-pip install -r requirements.txt
+python3 -m pip install -r requirements.txt
 
-python build_ai_jobs_dataset.py        # 1. build the dataset
-python analyze_exposure_revision.py    # 2. run the hypothesis tests
-python cluster_four_methods.py         # 3. run the four clustering models
-python make_figures.py                 # 4. draw the report stats figures
-python first_visual.py                 # 5. preprocess for readable figures, draw the reports figure 1
-python second_prelim_visual.py         # 6. draw the reports figure 2
-python third_visual.py                 # 7. draw the reports figure 3
+python3 build_ai_jobs_dataset.py
+python3 analyze_exposure_revision.py
+python3 cluster_four_methods.py
+python3 make_figures.py
+python3 raw/first_visual.py
+python3 raw/second_prelim_visual.py
+python3 raw/third_visual.py
 ```
 
-Run them in that order. Step 1 writes the panel that steps 2 and 3 read; step 4 reads the
-outputs of both. Nothing needs an API key, an account, or a config file.
+Run the commands in that order. The first four scripts build the analysis dataset, run the statistical tests, fit the clustering models, and generate the four analytical figures. The final three scripts generate the contextual BLS and AI-use figures. All scripts resolve paths relative to the repository, so they may be invoked from another working directory as well.
 
-**It runs offline.** Every input file is committed under `raw/`, so a fresh clone works
-with no network access at all. You should not need `--manual`, but it's there if you've
-deleted `raw/` and want the download list:
+No API key, account, or configuration file is required. Almost all inputs are committed under `raw/`. The BLS 2010→2018 Standard Occupational Classification (SOC) crosswalk is the exception: when it is absent and cannot be downloaded, the build completes with a clearly reported fallback that assumes unchanged SOC codes. That fallback reduces accuracy for occupations whose codes changed.
+
+To list missing inputs and their source URLs without downloading anything:
 
 ```bash
-python build_ai_jobs_dataset.py --manual   # lists every source file + URL, marks what's missing
+python3 build_ai_jobs_dataset.py --manual
 ```
 
-### Useful flags
+### Useful options
 
 ```bash
-python build_ai_jobs_dataset.py --pre 2019-29      # use the older pre-AI vintage
-python build_ai_jobs_dataset.py --skip-optional    # BLS + O*NET only, no exposure measures
-python analyze_exposure_revision.py --drop-pandemic # drop the 79 COVID-distorted occupations
-python cluster_four_methods.py --kmax 6            # search fewer values of k
-python cluster_four_methods.py --include-outcome   # the circular specification, for contrast
+python3 build_ai_jobs_dataset.py --pre 2019-29
+python3 build_ai_jobs_dataset.py --skip-optional
+python3 analyze_exposure_revision.py --drop-pandemic
+python3 cluster_four_methods.py --kmax 6
+python3 cluster_four_methods.py --include-outcome
 ```
 
-### What's in the repo
+`--include-outcome` intentionally adds the projection revision to the clustering features as a circular comparison. It is excluded by default.
 
+## Current results
+
+- The combined panel contains 832 occupations; 772 have complete values for the nine clustering features.
+- Pre-AI projected growth explains about 40% of the variance in projection revisions, illustrating substantial regression to the mean.
+- Twelve AI-exposure measures are tested. Two residualized direct-LLM measures pass Benjamini–Hochberg false discovery rate correction.
+- K-means selects two clusters containing 316 and 456 occupations, with a silhouette score of 0.264.
+- Mean pairwise Adjusted Rand Index (ARI) across k-means, Gaussian mixture modeling (GMM), Ward hierarchical clustering, and density-based spatial clustering of applications with noise (DBSCAN) is 0.271. The methods therefore impose different partitions on what looks largely like a continuum.
+- DBSCAN leaves 180 occupations unassigned as noise.
+- Projection revisions differ by k-means cluster under Kruskal–Wallis (`p = 0.0240`) but not under ANOVA (`p = 0.4967`).
+
+![AI exposure and projection revisions](figures/fig2_exposure_revision.png)
+
+The left panel shows the modest negative raw relationship. The right panel shows that it becomes much weaker after removing mean reversion.
+
+![Agreement among clustering methods](figures/fig4_method_agreement.png)
+
+The low off-diagonal ARI values show that the methods disagree about most fine-grained group assignments; the clusters should be interpreted as descriptive strata, not natural occupational types.
+
+## Repository structure
+
+```text
+build_ai_jobs_dataset.py       Build the occupation and occupation-task datasets
+analyze_exposure_revision.py   Run correlations, residualization, and multiple-test correction
+cluster_four_methods.py        Fit k-means, GMM, Ward, DBSCAN, and principal component analysis
+make_figures.py                Generate the four analytical figures
+appendix.md                    Detailed report, limitations, and data citations
+requirements.txt               Python dependencies
+raw/                           Source datasets and three contextual plotting scripts
+out/                           Generated analysis CSV files
+figures/                       Generated charts
 ```
-build_ai_jobs_dataset.py        1. builds the combined dataset
-analyze_exposure_revision.py    2. the hypothesis tests and derived variables
-cluster_four_methods.py         3. the four unsupervised models
-make_figures.py                 4. every figure that appears in the report
-requirements.txt
-README.md
-raw/                            all nine input files, committed
-out/                            generated CSVs
-figures/                        generated PNGs
-```
 
-### Disclaimer 
+## AI assistance disclosure
 
-Many of the scripts in this repo utilize Claude code, specifically the **Opus 4.8 model**, to aid in the programming aspect and to reduce the typos within our README. 
-
+Claude was used to assist with portions of programming and proofreading. All reported results should be evaluated against the executable scripts and generated outputs in this repository.
