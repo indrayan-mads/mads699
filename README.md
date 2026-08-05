@@ -64,7 +64,7 @@ The left panel shows the modest negative raw relationship. The right panel shows
 
 ![Agreement among clustering methods](figures/fig4_method_agreement.png)
 
-The low off-diagonal ARI values show that the methods disagree about most fine-grained group assignments; the clusters should be interpreted as descriptive strata, not natural occupational types.
+The low off-diagonal ARI values show that the methods disagree about most fine-grained group assignments. This is a stability diagnostic, not a test of accuracy or AI's impact: algorithms using the same imperfect features can make the same mistakes. The clusters should therefore be interpreted as provisional descriptive strata, not natural occupational types or causal evidence.
 
 ## Repository structure
 

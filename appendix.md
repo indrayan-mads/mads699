@@ -115,7 +115,7 @@ throughout the datasets and methodology.
 
 An important framing point first: **clustering doesn't predict anything.** There's no
 target variable. It groups occupations by similarity and that's it. The clusters are
-descriptive — a way of saying "here are the natural strata in occupation-space." The
+descriptive — a way of asking whether useful strata appear in occupation-space. The
 actual AI claim is carried by `analyze_exposure_revision.py`, which is a separate step
 with a separate method.
 
@@ -123,6 +123,16 @@ with a separate method.
 |---|---|---|---|
 | Unsupervised | What groupings exist among occupations? | k-means, GMM, Ward, DBSCAN | none |
 | Inferential | Does exposure predict downgraded projections? | Spearman, residualization | `revision_pp` |
+
+Agreement across clustering methods is therefore a **robustness diagnostic, not an accuracy
+test and not evidence of AI's impact**. If algorithms with different assumptions recover a
+similar partition, that suggests the partition is not unique to one algorithm's geometry.
+It does not show that the partition represents the true structure of occupations, that the
+input features are unbiased, or that AI caused projection changes. Several algorithms can
+repeat the same error when they use the same incomplete or mismeasured features. For that
+reason, the Adjusted Rand Index (ARI) comparison below is used only to assess the stability
+of the descriptive clusters. The separate exposure-versus-revision tests address the project’s
+substantive question, and even those tests support association rather than causation.
 
 This separation matters because of a trap we deliberately avoided. If you put
 `revision_pp` into the clustering features, the clusters are partly *defined* by the
@@ -170,13 +180,17 @@ mostly agree (0.683), which makes sense since both are distance-based. GMM finds
 substantially different partition. DBSCAN places 180 occupations in the noise bin
 rather than forcing them anywhere. Put that next to the 0.264 silhouette and the story is
 consistent: a largely continuous gradient, sliced four ways according to four sets of
-assumptions. So we report these as strata, not as discovered categories.
+assumptions. This comparison tells us that the proposed groupings are not especially stable;
+it does not tell us whether any method accurately captures AI's impact. We therefore report
+the clusters as provisional descriptive strata, not as discovered categories or causal evidence.
 
 **The exposure measures agree with each other.** Mean Spearman correlation between the
 Anthropic index (what people actually do with Claude) and the Eloundou measures (humans
-applying a rubric) is **+0.615**. Two methodologies with nothing in common land in the same
-place. This is what makes the null result below interpretable rather than ambiguous — we
-can't wave it away by saying the exposure measure was junk.
+applying a rubric) is **+0.615**. This convergent validity is more directly relevant to the
+measurement of AI exposure than agreement among clustering algorithms: independently designed
+exposure measures rank occupations similarly. It still does not prove that either measure is
+unbiased or that exposure causes employment changes. It only makes a purely measure-specific
+explanation for the results less likely.
 
 **The hypothesis test is mostly null.** Correlating raw revisions against exposure gives a
 negative relationship across all twelve exposure measures, consistently signed, several
