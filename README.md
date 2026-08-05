@@ -6,6 +6,18 @@ This project compares the BLS 2021–31 projections, finalized before ChatGPT's 
 
 **Main result:** AI exposure is negatively correlated with raw projection revisions, but most of that relationship weakens after accounting for pre-AI projected growth. Two direct large language model (LLM) exposure measures remain significant after false discovery rate correction. Cluster-level results are sensitive to the statistical test: the one-way analysis of variance (ANOVA) is not significant, while the rank-based Kruskal–Wallis test is significant. This is evidence for caution rather than a clean displacement effect.
 
+## What is novel about this project
+
+The individual datasets and statistical methods are established; the contribution is how they are combined to study a new question. The project treats two adjacent BLS projection vintages—one finalized immediately before the public emergence of generative AI and one produced afterward—as a record of how an official forecasting agency changed its expectations. It then joins those revisions to four independently constructed AI-exposure measures: observed Claude use, human and model rubric ratings of LLM capabilities, a pre-LLM AI occupational exposure index, and task-level Claude usage.
+
+This design provides three useful advances over relying on one exposure score or one clustering result:
+
+- It compares multiple conceptually different measures of AI exposure against the same occupation-level outcome.
+- It separates descriptive clustering from inferential testing and excludes the projection revision from clustering by default, avoiding an outcome-leakage problem that could manufacture apparent cluster differences.
+- It publishes a reproducible occupation-and-task panel that allows raw relationships, mean-reversion controls, pandemic-sensitive occupations, and alternative clustering assumptions to be examined together.
+
+The novelty is therefore methodological and integrative, not a claim that the project has identified AI's causal effect on employment. The outcome is a change in BLS forecasts, not realized employment, and the analysis remains observational.
+
 For the full methodology, results, limitations, and citations, see [`appendix.md`](appendix.md).
 
 ![Project data and analysis architecture](mads699_project_architecture.png)

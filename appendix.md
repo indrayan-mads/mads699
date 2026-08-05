@@ -30,12 +30,30 @@ the four were built in completely different ways by completely different people:
   much they rely on human abilities that AI in general has gotten good at.
 - **Claude usage share by task**, also from the Anthropic index, summed to the occupation.
 
-Two are opinion-based, one is behavioral, one is pre-LLM. If they all point the same
-direction, that could indicate some significance. 
+Two are opinion-based, one is behavioral, and one predates LLMs. If they rank occupations
+similarly, that provides convergent evidence that they capture a related exposure construct;
+it does not prove that the measures are unbiased or that exposure causes employment changes.
 
 **Task data from O\*NET.** Every task belonging to every occupation, whether it's core or
 supplemental, and how important raters judged it. This is what lets us work at the task
 level rather than a broad overview at the occupation level. 
+
+### What this project contributes
+
+The source datasets, clustering algorithms, and correlation tests are not individually new.
+The contribution is the research design that connects them. We use the change between two
+adjacent BLS projection vintages as an occupation-level outcome, join it to four exposure
+measures built from different assumptions, and preserve task-level detail in one reproducible
+panel. This makes it possible to ask whether a relationship appears across behavioral,
+rubric-based, and pre-LLM measures rather than depending on a single definition of exposure.
+
+The workflow also keeps descriptive and inferential questions separate. Projection revisions
+are excluded from the clustering features by default, preventing the outcome from defining the
+groups later compared on that same outcome. Clustering-method agreement is reported only as a
+stability diagnostic, while separate exposure-versus-revision tests address the substantive
+question. This combination and separation are the project's methodological novelty. They do
+not establish causality: the outcome is a revision to an official forecast, not realized
+employment, and shared measurement errors may remain.
 
 ### How the joins work
 
