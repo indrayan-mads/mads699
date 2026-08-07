@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1500" viewBox="0 0 1600 1500">
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#73716b"/>
+    </marker>
+    <style>
+      .bg { fill: #fbfaf7; }
+      .source { fill: #f2f0e9; stroke: #9a978f; stroke-width: 2; }
+      .script { fill: #eeedff; stroke: #6058d6; stroke-width: 3; }
+      .output { fill: #e8f3ed; stroke: #39765a; stroke-width: 3; }
+      .lane { fill: none; stroke: #d7d3c9; stroke-width: 2; stroke-dasharray: 10 8; }
+      .arrow { fill: none; stroke: #73716b; stroke-width: 4; marker-end: url(#arrow); }
+      .title { font: 700 36px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #2d2d2b; }
+      .laneTitle { font: 700 24px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #5b5852; }
+      .head { font: 700 27px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #37328d; }
+      .sourceHead { font: 700 28px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #3f3e3a; }
+      .body { font: 23px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #5c5953; }
+      .outHead { font: 700 27px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #285b43; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1600" height="1500"/>
+  <text class="title" x="80" y="65">MADS 699 project workflow</text>
+
+  <rect class="lane" x="55" y="95" width="1490" height="960" rx="24"/>
+  <text class="laneTitle" x="80" y="135">CORE ANALYSIS PIPELINE</text>
+
+  <rect class="source" x="85" y="175" width="420" height="125" rx="20"/>
+  <text class="sourceHead" x="295" y="225" text-anchor="middle">BLS projections</text>
+  <text class="body" x="295" y="265" text-anchor="middle">2021–31 and 2024–34</text>
+
+  <rect class="source" x="590" y="175" width="420" height="125" rx="20"/>
+  <text class="sourceHead" x="800" y="225" text-anchor="middle">AI exposure</text>
+  <text class="body" x="800" y="265" text-anchor="middle">AEI, Eloundou, Felten</text>
+
+  <rect class="source" x="1095" y="175" width="420" height="125" rx="20"/>
+  <text class="sourceHead" x="1305" y="225" text-anchor="middle">O*NET tasks</text>
+  <text class="body" x="1305" y="265" text-anchor="middle">tasks and importance</text>
+
+  <path class="arrow" d="M295 300 L650 390"/>
+  <path class="arrow" d="M800 300 L800 382"/>
+  <path class="arrow" d="M1305 300 L950 390"/>
+
+  <rect class="script" x="475" y="390" width="650" height="130" rx="20"/>
+  <text class="head" x="800" y="445" text-anchor="middle">build_ai_jobs_dataset.py</text>
+  <text class="body" x="800" y="487" text-anchor="middle">joins and normalizes source data</text>
+
+  <path class="arrow" d="M800 520 L800 590"/>
+  <rect class="output" x="500" y="590" width="600" height="115" rx="20"/>
+  <text class="outHead" x="800" y="638" text-anchor="middle">occupation_ai_panel.csv</text>
+  <text class="body" x="800" y="675" text-anchor="middle">832 occupations × 28 columns</text>
+
+  <path class="arrow" d="M680 705 L400 785"/>
+  <path class="arrow" d="M920 705 L1200 785"/>
+
+  <rect class="script" x="105" y="785" width="600" height="125" rx="20"/>
+  <text class="head" x="405" y="835" text-anchor="middle">analyze_exposure_revision.py</text>
+  <text class="body" x="405" y="875" text-anchor="middle">correlations, controls, FDR correction</text>
+
+  <rect class="script" x="895" y="785" width="600" height="125" rx="20"/>
+  <text class="head" x="1195" y="835" text-anchor="middle">cluster_four_methods.py</text>
+  <text class="body" x="1195" y="875" text-anchor="middle">k-means, GMM, Ward, DBSCAN, PCA</text>
+
+  <path class="arrow" d="M405 910 L650 970"/>
+  <path class="arrow" d="M1195 910 L950 970"/>
+  <rect class="script" x="500" y="940" width="600" height="105" rx="20"/>
+  <text class="head" x="800" y="982" text-anchor="middle">make_figures.py</text>
+  <text class="body" x="800" y="1020" text-anchor="middle">writes four analytical figures to figures/</text>
+
+  <rect class="lane" x="55" y="1080" width="1490" height="365" rx="24"/>
+  <text class="laneTitle" x="80" y="1120">CONTEXTUAL FIGURE SCRIPTS</text>
+
+  <rect class="script" x="85" y="1160" width="430" height="115" rx="20"/>
+  <text class="head" x="300" y="1205" text-anchor="middle">raw/first_visual.py</text>
+  <text class="body" x="300" y="1243" text-anchor="middle">employment slope chart</text>
+
+  <rect class="script" x="570" y="1160" width="460" height="115" rx="20"/>
+  <text class="head" x="800" y="1205" text-anchor="middle">raw/second_prelim_visual.py</text>
+  <text class="body" x="800" y="1243" text-anchor="middle">AI-use skill comparison</text>
+
+  <rect class="script" x="1085" y="1160" width="430" height="115" rx="20"/>
+  <text class="head" x="1300" y="1205" text-anchor="middle">raw/third_visual.py</text>
+  <text class="body" x="1300" y="1243" text-anchor="middle">exposure-growth scatterplot</text>
+
+  <path class="arrow" d="M300 1275 L520 1345"/>
+  <path class="arrow" d="M800 1275 L800 1330"/>
+  <path class="arrow" d="M1300 1275 L1080 1345"/>
+  <rect class="output" x="385" y="1330" width="830" height="100" rx="20"/>
+  <text class="outHead" x="800" y="1370" text-anchor="middle">figures/*.png</text>
+  <text class="body" x="800" y="1405" text-anchor="middle">three contextual charts; seven repository charts total</text>
+</svg>
